@@ -1,0 +1,70 @@
+
+#include <Wire.h>
+#include <Adafruit_LiquidCrystal.h>
+
+// MCP23008 I2C backpack
+Adafruit_LiquidCrystal lcd(0);
+
+const int tempPin = A0;
+const int powerPin = 5;
+
+float actualTemperature = 0;
+float simulatedTemperature = 0;
+
+void setup() {
+  pinMode(powerPin, OUTPUT);
+  digitalWrite(powerPin, HIGH);
+
+  if (!lcd.begin(16, 2)) {
+    while (1);
+  }
+
+  lcd.setBacklight(HIGH);
+
+  // Read initial temperature from TMP36
+  int sensorValue = analogRead(tempPin);
+  float voltage = sensorValue * (5.0 / 1023.0);
+
+  actualTemperature = (voltage - 0.5) * 100.0;
+  simulatedTemperature = actualTemperature;
+
+  lcd.clear();
+}
+
+void loop() {
+
+  // Display actual temperature
+  lcd.setCursor(0, 0);
+  lcd.print("Actual: ");
+  lcd.print(actualTemperature, 1);
+  lcd.write(223);
+  lcd.print("C   ");
+
+  // Heating cycle: increase by 10 degrees
+  while (simulatedTemperature < actualTemperature + 50) {
+
+    simulatedTemperature += 10;
+
+    lcd.setCursor(0, 1);
+    lcd.print("Simulated: ");
+    lcd.print(simulatedTemperature, 1);
+    lcd.write(223);
+    lcd.print("C   ");
+
+    delay(2000);
+  }
+
+  // Cooling cycle: decrease by 10 degrees
+  while (simulatedTemperature > actualTemperature - 50) {
+
+    simulatedTemperature -= 10;
+
+    lcd.setCursor(0, 1);
+    lcd.print("Simulated: ");
+    lcd.print(simulatedTemperature, 1);
+    lcd.write(223);
+    lcd.print("C   ");
+
+    delay(2000);
+  }
+}
